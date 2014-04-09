@@ -59,10 +59,17 @@ class GameBox(GameObject):
   """The 'box' that the game is played in, a way to check if the ball has left the window"""
   def __init__(self, window):
     self.p1 = Point(0,0)
-    self.height = window.getHeight()
-    self.width = window.getWidth()
-    self.p2 = Point(self.width, self.height)
-    self.BBox = Rectangle(self.p1, self.p2)
+    if type(window) == type(()):
+      self.height = window[0]
+      self.width = window[1]
+      self.p2 = Point(self.width, self.height)
+      self.BBox = Rectangle(self.p1, self.p2)
+      return
+    else:
+      self.height = window.getHeight()
+      self.width = window.getWidth()
+      self.p2 = Point(self.width, self.height)
+      self.BBox = Rectangle(self.p1, self.p2)
 
   def checkWall(self, other):
     """returns which if any walls an object is beyond"""
@@ -106,11 +113,13 @@ class Ball(GameObject):
     self.BBox.move(vector.x, vector.y)
     self.center = self.ball.getCenter()
 
-  def reset(self):
+  def reset(self, real = 1):
     """returns a new ball (with the same features) at the spawning point of the current ball"""
-    self.undraw()
+    if real:
+      self.undraw()
     new = Ball(self.window, self.start, self.radius, self.color)
-    new.draw()
+    if real:
+      new.draw()
     return new
   def draw(self): self.ball.draw(self.window)
   def undraw(self): self.ball.undraw()
@@ -125,13 +134,18 @@ class  Paddle(GameObject):
     player => bool, whether the paddle is controlled by a human or a computer
     diff => int 1-9, the difficulty setting, for computer paddle"""
     self.window = window
-    self.width = window.getWidth() / 20
+    if type(window) != type(()): 
+      self.width = window.getWidth() / 20
+      self.height = window.getHeight()
+    else: 
+      self.width = self.window[0] / 20
+      self.height = self.window[1]
     self.length = length
     self.player = player
     if self.player:
-      self.P1 = Point(self.width * 19, ((self.window.getHeight() - self.length) / 2))
+      self.P1 = Point(self.width * 19, ((self.height - self.length) / 2))
     else:
-      self.P1 = Point(0, ((self.window.getHeight() - self.length) / 2))
+      self.P1 = Point(0, ((self.height - self.length) / 2))
     self.P2 = self.P1.clone()
     self.P2.move(self.width, self.length)
     self.center = self.P1.clone()
@@ -139,7 +153,7 @@ class  Paddle(GameObject):
     self.paddle = Rectangle(self.P1, self.P2)
     self.paddle.setFill('black')
     self.BBox = self.paddle
-    if not player: self.diff = diff
+    self.diff = diff
 
   def move(self, num):
     """moves the paddle num pixels down""" 
@@ -153,11 +167,13 @@ class  Paddle(GameObject):
     """undrawsd the paddle""" 
     self.paddle.undraw()
 
-  def reset(self):
+  def reset(self, real = 1):
     """returns a new paddle object with the same attributes and at the same starting point as the first"""
-    self.undraw()
+    if real:
+      self.undraw()
     new = Paddle(self.window, self.length, self.player, self.diff)
-    new.draw()
+    if real:
+      new.draw()
     return new
 
   def findBall(self, ball):

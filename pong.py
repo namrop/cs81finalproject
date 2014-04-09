@@ -7,6 +7,7 @@ from gv2 import *
 from random import random, randrange
 from time import sleep
 import ball
+import pdb
 
 def game():
 
@@ -16,7 +17,7 @@ def game():
   gamebox = ball.GameBox(window)
   center = Point(width/2, height/2)
 
-  paddle1 = ball.Paddle(window, 150)
+  paddle1 = ball.Paddle(window, 150, 1, 9)
 
   message = 'Please choose a difficulty (1-9)'
   messageDisplay = Text(center, message)
@@ -68,7 +69,7 @@ def game():
   while True:
 
     tic2 += 1
-
+    """
     key = window.checkKey()
     if key == 'Up': paddle1.move(-20)#moves paddle up
     elif key == 'Down': paddle1.move(20)#moves paddle down
@@ -77,6 +78,7 @@ def game():
       window.getMouse()
       messageDisplay.undraw()
     elif key == 'F4': break #quits the game
+    """
 
     if (ball1 in paddle1 or ball1 in paddle2) and not tic1:
       vec = -vec #changes the x of the vector to its opposite
@@ -120,6 +122,8 @@ def game():
     ball1.move(vec)
     if vec.x < 0:
       paddle2.findBall(ball1)
+    else:
+      paddle1.findBall(ball1)
     if vec.x == 0: vec.setX(1)
 
     if tic2 % 20 == 0 and ball1 not in gamebox:#If the ball runs away, reset the field 
@@ -144,4 +148,80 @@ def game():
 
     sleep(0.01)
 
+def windowless():
+ 
+  width = 1600
+  height = 1000
+  window = (width, height)
+  gamebox = ball.GameBox(window)
+  center = Point(width/2, height/2)
+
+  paddle1 = ball.Paddle(window, 150, 1, 9)
+  paddle2 = ball.Paddle(window, 150, None,1)
+  ball1 = ball.Ball(window, center, 30)
+  vec = ball.Vector(randrange(-5,5),randrange(-5,5))
+
+  player = 0 #player score
+  comp = 0 #computer score
+
+  score = str(comp) + (' ' * 30) + str(player)
+  tic1 = 0
+  tic2 = 0
+  while True:
+
+    tic2 += 1
+
+    if (ball1 in paddle1 or ball1 in paddle2) and not tic1:
+      vec = -vec #changes the x of the vector to its opposite
+      ball1.addHit()
+      tic1 = 1
+      if ball1.hits % 5 == 0: #increases the vector by one
+        vec += 1
+    elif (ball1 in paddle1 or ball1 in paddle2) and tic1: pass 
+#if the ball has not stopped touching the paddle yet, ignore it
+    else: tic1 = 0
+
+    wall = gamebox.checkWall(ball1)
+    if wall:
+        if wall == 'Left':
+
+          ball1 = ball1.reset(None) #resets the playing field
+          paddle2 = paddle2.reset(None)
+          vec = vec.reset((-5,5), (-5,5))
+
+          player += 1 #increments the players score
+          score = str(comp) + (' ' * 30) + str(player)
+          print score
+
+        elif wall == 'Top': vec = +vec #reverses the y of the vector
+        elif wall == 'Bottom': vec = +vec
+        elif wall == 'Right': 
+          ball1 = ball1.reset(None)
+          paddle2 = paddle2.reset(None)
+          vec = vec.reset((-5,5), (-5,5))
+          comp += 1
+          score = str(comp) + (' ' * 30) + str(player)
+          print score
+
+    ball1.move(vec)
+    if vec.x < 0:
+      paddle2.findBall(ball1)
+    else:
+      paddle1.findBall(ball1)
+    if vec.x == 0: vec.setX(1)
+
+    if tic2 % 20 == 0 and ball1 not in gamebox:#If the ball runs away, reset the field 
+      ball1 = ball1.reset(None)
+      paddle2 = paddle2.reset(None)
+      vec = vec.reset()
+
+    if player >= 5: #if someone wins, alerts the player and ends the game
+      print "Player wins"
+      break
+    elif comp >= 5:
+      print "Computer wins"
+      break
+
+
 game()
+#windowless()
